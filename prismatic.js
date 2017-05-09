@@ -9,6 +9,7 @@ var Prismatic = function (options) {
   this.registeredAction = {
     'move': [],
     'click': [],
+    'menu': [],
   };
 
   if (!options) {
@@ -35,6 +36,25 @@ Prismatic.prototype.isInTiming = function (from, to, current) {
 }
 
 /**
+ * Check data for a click event
+ */
+Prismatic.prototype.manageClick = function (player, data, videoCanva, val, timer, e) {
+  var actualZone = {
+    "leftX": parseFloat(val.coord.leftX) / parseFloat(data.baseData.baseWidth) * parseFloat(videoCanva.width()),
+    "topY": parseFloat(val.coord.topY) / parseFloat(data.baseData.baseHeight) * parseFloat(videoCanva.height()),
+    "rightX": parseFloat(val.coord.rightX) / parseFloat(data.baseData.baseWidth) * parseFloat(videoCanva.width()),
+    "bottomY": parseFloat(val.coord.bottomY) / parseFloat(data.baseData.baseHeight) * parseFloat(videoCanva.height()),
+  };
+
+  if (this.isInZone(e.clientX, e.clientY, actualZone) && this.isInTiming(timer.starting, timer.ending, player.currentTime())) {
+    if (val.action.jumpTo) {
+      this.LOG('[' + val.name + '] Jump to  : ' + val.action.jumpTo + 's');
+      player.currentTime(val.action.jumpTo);
+    }
+  }
+}
+
+/**
  * Handle each "move" action
  */
 Prismatic.prototype.handleMoveAction = function (player) {
@@ -58,18 +78,23 @@ Prismatic.prototype.handleClickAction = function (data, player) {
   var videoCanva = $('.' + prismatic.videoClass);
   videoCanva.click(function (e) {
     $.each(prismatic.registeredAction['click'], function (key, val) {
-      var actualZone = {
-        "leftX": parseFloat(val.coord.leftX) / parseFloat(data.baseData.baseWidth) * parseFloat(videoCanva.width()),
-        "topY": parseFloat(val.coord.topY) / parseFloat(data.baseData.baseHeight) * parseFloat(videoCanva.height()),
-        "rightX": parseFloat(val.coord.rightX) / parseFloat(data.baseData.baseWidth) * parseFloat(videoCanva.width()),
-        "bottomY": parseFloat(val.coord.bottomY) / parseFloat(data.baseData.baseHeight) * parseFloat(videoCanva.height()),
-      };
+      prismatic.manageClick(player, data, videoCanva, val, val.timer, e);
+    });
+  });
+}
 
-      if (prismatic.isInZone(e.clientX, e.clientY, actualZone) && prismatic.isInTiming(val.timer.starting, val.timer.ending, player.currentTime())) {
-        if (val.action.jumpTo) {
-          prismatic.LOG('[' + val.name + '] Jump to  : ' + val.action.jumpTo + 's');
-          player.currentTime(val.action.jumpTo);
-        }
+/**
+ * Handle each "menu" action
+ */
+Prismatic.prototype.handleMenuAction = function (data, player) {
+  var prismatic = this;
+  $.each(prismatic.registeredAction['menu'], function (key, menu) {
+    $.each(menu.items, function (key, val) {
+      if (prismatic.registeredAction[val.type]) {
+        var fullVal = Object.assign({}, val, {timer: menu.timer});
+        prismatic.registeredAction[val.type].push(fullVal);
+      } else {
+        prismatic.ERROR('Action type [' + val.type + '] from menu [' + menu.name + '] doesn\'t exist !');
       }
     });
   });
@@ -111,7 +136,14 @@ Prismatic.prototype.start = function () {
         }
       });
 
+      ///////////////////////////////////
+      // Handle menu action
+      ///////////////////////////////////
+      prismatic.handleMenuAction(data, player);
+      
+      prismatic.LOG('---------------All events have been loaded---------------');
       prismatic.LOG(prismatic.registeredAction);
+      prismatic.LOG('---------------------------------------------------------');
 
       ///////////////////////////////////
       // Handle move action

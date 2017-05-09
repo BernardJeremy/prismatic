@@ -11,55 +11,53 @@
             "to": 15
         },
         {
-            "name": "clickMenuEleves",
-            "type": "click",
-            "timer" : {
+            "name": "accueilMenu",
+            "type": "menu",
+            "timer": {
                 "starting": 16,
                 "ending": 18
             },
-            "action" : {
-                "jumpTo": "90"
-            },
-            "coord" : {
-                "leftX": 85,
-                "topY": 0,
-                "rightX": 230,
-                "bottomY": 264
-            }
-        },
-        {
-            "name": "clickMenuParents",
-            "type": "click",
-            "timer" : {
-                "starting": 16,
-                "ending": 18
-            },
-            "action" : {
-                "jumpTo": "19"
-            },
-            "coord" : {
-                "leftX": 238,
-                "topY": 0,
-                "rightX": 398,
-                "bottomY": 264
-            }
-        },
-        {
-            "name": "clickMenuColleges",
-            "type": "click",
-            "timer" : {
-                "starting": 16,
-                "ending": 18
-            },
-            "action" : {
-                "jumpTo": "70"
-            },
-            "coord" : {
-                "leftX": 406,
-                "topY": 0,
-                "rightX": 561,
-                "bottomY": 264
-            }
+            "items": [
+                {
+                    "name": "clickMenuEleves",
+                    "type": "click",
+                    "action": {
+                        "jumpTo": 90
+                    },
+                    "coord": {
+                        "leftX": 85,
+                        "topY": 0,
+                        "rightX": 230,
+                        "bottomY": 264
+                    }
+                },
+                {
+                    "name": "clickMenuParents",
+                    "type": "click",
+                    "action": {
+                        "jumpTo": 19
+                    },
+                    "coord": {
+                        "leftX": 238,
+                        "topY": 0,
+                        "rightX": 398,
+                        "bottomY": 264
+                    }
+                },
+                {
+                    "name": "clickMenuColleges",
+                    "type": "click",
+                    "action": {
+                        "jumpTo": 70
+                    },
+                    "coord": {
+                        "leftX": 406,
+                        "topY": 0,
+                        "rightX": 561,
+                        "bottomY": 264
+                    }
+                }
+            ]
         },
         {
             "name": "JumpToMenuBegin",
