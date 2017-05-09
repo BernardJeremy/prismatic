@@ -60,8 +60,8 @@ Prismatic.prototype.handleClickAction = function (data, player) {
     $.each(prismatic.registeredAction['click'], function (key, val) {
       var actualZone = {
         "leftX": parseFloat(val.leftX) / parseFloat(data.baseData.baseWidth) * parseFloat(videoCanva.width()),
-        "topY": val.topY / data.baseData.baseHeight * videoCanva.height(),
-        "rightX": val.rightX / data.baseData.baseWidth * videoCanva.width(),
+        "topY": parseFloat(val.topY) / parseFloat(data.baseData.baseHeight) * parseFloat(videoCanva.height()),
+        "rightX": parseFloat(val.rightX) / parseFloat(data.baseData.baseWidth) * parseFloat(videoCanva.width()),
         "bottomY": parseFloat(val.bottomY) / parseFloat(data.baseData.baseHeight) * parseFloat(videoCanva.height()),
       };
 
