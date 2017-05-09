@@ -38,12 +38,15 @@ Prismatic.prototype.isInTiming = function (from, to, current) {
  * Handle each "move" action
  */
 Prismatic.prototype.handleMoveAction = function (player) {
-  var currentTimeValue = player.currentTime();
-  $.each(this.registeredAction['move'], function (key, val) {
-    if (currentTimeValue >= val.from - MARGIN_S_CHECK_MOVE_ACTION && currentTimeValue <= val.from + MARGIN_S_CHECK_MOVE_ACTION) {
-      player.currentTime(val.to);
-    }
-  });
+  var prismatic = this;
+  setInterval(function () {
+    var currentTimeValue = player.currentTime();
+    $.each(prismatic.registeredAction['move'], function (key, val) {
+      if (currentTimeValue >= val.from - MARGIN_S_CHECK_MOVE_ACTION && currentTimeValue <= val.from + MARGIN_S_CHECK_MOVE_ACTION) {
+        player.currentTime(val.to);
+      }
+    });
+  }, INTERVAL_MS_CHECK_CURRRENT_TIME);
 }
 
 /**
@@ -54,6 +57,7 @@ Prismatic.prototype.LOG = function (...data) {
     console.log(...data)
   }
 }
+
 /**
  * Print log with error level, only if debug flag is set to true
  */
@@ -86,9 +90,7 @@ Prismatic.prototype.start = function () {
       ///////////////////////////////////
       // Handle move action
       ///////////////////////////////////
-      setInterval(function () {
-        prismatic.handleMoveAction(player);
-      }, INTERVAL_MS_CHECK_CURRRENT_TIME);
+      prismatic.handleMoveAction(player);
 
       ///////////////////////////////////
       // Handle click action
