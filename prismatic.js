@@ -59,16 +59,16 @@ Prismatic.prototype.handleClickAction = function (data, player) {
   videoCanva.click(function (e) {
     $.each(prismatic.registeredAction['click'], function (key, val) {
       var actualZone = {
-        "leftX": parseFloat(val.leftX) / parseFloat(data.baseData.baseWidth) * parseFloat(videoCanva.width()),
-        "topY": parseFloat(val.topY) / parseFloat(data.baseData.baseHeight) * parseFloat(videoCanva.height()),
-        "rightX": parseFloat(val.rightX) / parseFloat(data.baseData.baseWidth) * parseFloat(videoCanva.width()),
-        "bottomY": parseFloat(val.bottomY) / parseFloat(data.baseData.baseHeight) * parseFloat(videoCanva.height()),
+        "leftX": parseFloat(val.coord.leftX) / parseFloat(data.baseData.baseWidth) * parseFloat(videoCanva.width()),
+        "topY": parseFloat(val.coord.topY) / parseFloat(data.baseData.baseHeight) * parseFloat(videoCanva.height()),
+        "rightX": parseFloat(val.coord.rightX) / parseFloat(data.baseData.baseWidth) * parseFloat(videoCanva.width()),
+        "bottomY": parseFloat(val.coord.bottomY) / parseFloat(data.baseData.baseHeight) * parseFloat(videoCanva.height()),
       };
 
-      if (prismatic.isInZone(e.clientX, e.clientY, actualZone) && prismatic.isInTiming(val.starting, val.ending, player.currentTime())) {
-        if (val.jumpTo) {
-          prismatic.LOG('[' + val.name + '] Jump to  : ' + val.jumpTo + 's');
-          player.currentTime(val.jumpTo);
+      if (prismatic.isInZone(e.clientX, e.clientY, actualZone) && prismatic.isInTiming(val.timer.starting, val.timer.ending, player.currentTime())) {
+        if (val.action.jumpTo) {
+          prismatic.LOG('[' + val.name + '] Jump to  : ' + val.action.jumpTo + 's');
+          player.currentTime(val.action.jumpTo);
         }
       }
     });

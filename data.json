@@ -13,35 +13,53 @@
         {
             "name": "clickMenuEleves",
             "type": "click",
-            "jumpTo": "90",
-            "starting": 16,
-            "ending": 18,
-            "leftX": 85,
-            "topY": 0,
-            "rightX": 230,
-            "bottomY": 264
+            "timer" : {
+                "starting": 16,
+                "ending": 18
+            },
+            "action" : {
+                "jumpTo": "90"
+            },
+            "coord" : {
+                "leftX": 85,
+                "topY": 0,
+                "rightX": 230,
+                "bottomY": 264
+            }
         },
         {
             "name": "clickMenuParents",
             "type": "click",
-            "jumpTo": "19",
-            "starting": 16,
-            "ending": 18,
-            "leftX": 238,
-            "topY": 0,
-            "rightX": 398,
-            "bottomY": 264
+            "timer" : {
+                "starting": 16,
+                "ending": 18
+            },
+            "action" : {
+                "jumpTo": "19"
+            },
+            "coord" : {
+                "leftX": 238,
+                "topY": 0,
+                "rightX": 398,
+                "bottomY": 264
+            }
         },
         {
             "name": "clickMenuColleges",
             "type": "click",
-            "jumpTo": "70",
-            "starting": 16,
-            "ending": 18,
-            "leftX": 406,
-            "topY": 0,
-            "rightX": 561,
-            "bottomY": 264
+            "timer" : {
+                "starting": 16,
+                "ending": 18
+            },
+            "action" : {
+                "jumpTo": "70"
+            },
+            "coord" : {
+                "leftX": 406,
+                "topY": 0,
+                "rightX": 561,
+                "bottomY": 264
+            }
         },
         {
             "name": "JumpToMenuBegin",
