@@ -43,6 +43,7 @@ Prismatic.prototype.handleMoveAction = function (player) {
     var currentTimeValue = player.currentTime();
     $.each(prismatic.registeredAction['move'], function (key, val) {
       if (currentTimeValue >= val.from - MARGIN_S_CHECK_MOVE_ACTION && currentTimeValue <= val.from + MARGIN_S_CHECK_MOVE_ACTION) {
+        prismatic.LOG('[' + val.name + '] Jump to  : ' + val.to + 's');        
         player.currentTime(val.to);
       }
     });
