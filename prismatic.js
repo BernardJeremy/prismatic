@@ -1,5 +1,5 @@
-var INTERVAL_MS_CHECK_CURRRENT_TIME = 10;
-var MARGIN_S_CHECK_MOVE_ACTION = (INTERVAL_MS_CHECK_CURRRENT_TIME / 1000) * 2;
+var INTERVAL_MS_CHECK_CURRRENT_TIME = 5;
+var MARGIN_S_CHECK_MOVE_ACTION = 0.02;
 
 /**
  * Base object, with option init  
@@ -16,9 +16,10 @@ var Prismatic = function (options) {
     options = {};
   }
   this.videoId = options.videoID || 'my-video';
-  this.videoClass = options.videoClass || 'video-js';
   this.jsonFileUrl = options.jsonFileUrl || 'data.json';
   this.debug = options.debug || false;
+
+  this.player = document.getElementById(this.videoId);
 }
 
 /**
@@ -38,7 +39,7 @@ Prismatic.prototype.isInTiming = function (from, to, current) {
 /**
  * Check data for a click event
  */
-Prismatic.prototype.manageClick = function (player, data, videoCanva, val, timer, e) {
+Prismatic.prototype.manageClick = function (data, videoCanva, val, timer, e) {
   var actualZone = {
     "leftX": parseFloat(val.coord.leftX) / parseFloat(data.baseData.baseWidth) * parseFloat(videoCanva.width()),
     "topY": parseFloat(val.coord.topY) / parseFloat(data.baseData.baseHeight) * parseFloat(videoCanva.height()),
@@ -46,10 +47,10 @@ Prismatic.prototype.manageClick = function (player, data, videoCanva, val, timer
     "bottomY": parseFloat(val.coord.bottomY) / parseFloat(data.baseData.baseHeight) * parseFloat(videoCanva.height()),
   };
 
-  if (this.isInZone(e.clientX, e.clientY, actualZone) && this.isInTiming(timer.starting, timer.ending, player.currentTime())) {
+  if (this.isInZone(e.clientX, e.clientY, actualZone) && this.isInTiming(timer.starting, timer.ending, this.player.currentTime)) {
     if (val.action.jumpTo) {
       this.LOG('[' + val.name + '] Jump to  : ' + val.action.jumpTo + 's');
-      player.currentTime(val.action.jumpTo);
+      this.player.currentTime = val.action.jumpTo;
     }
   }
 }
@@ -57,14 +58,14 @@ Prismatic.prototype.manageClick = function (player, data, videoCanva, val, timer
 /**
  * Handle each "move" action
  */
-Prismatic.prototype.handleMoveAction = function (player) {
+Prismatic.prototype.handleMoveAction = function () {
   var prismatic = this;
   setInterval(function () {
-    var currentTimeValue = player.currentTime();
+    var currentTimeValue = prismatic.player.currentTime;
     $.each(prismatic.registeredAction['move'], function (key, val) {
       if (currentTimeValue >= val.from - MARGIN_S_CHECK_MOVE_ACTION && currentTimeValue <= val.from + MARGIN_S_CHECK_MOVE_ACTION) {
         prismatic.LOG('[' + val.name + '] Jump to  : ' + val.to + 's');        
-        player.currentTime(val.to);
+        prismatic.player.currentTime = val.to;
       }
     });
   }, INTERVAL_MS_CHECK_CURRRENT_TIME);
@@ -73,12 +74,12 @@ Prismatic.prototype.handleMoveAction = function (player) {
 /**
  * Handle each "click" action
  */
-Prismatic.prototype.handleClickAction = function (data, player) {
+Prismatic.prototype.handleClickAction = function (data) {
   var prismatic = this;
-  var videoCanva = $('.' + prismatic.videoClass);
+  var videoCanva = $('#' + prismatic.videoId);
   videoCanva.click(function (e) {
     $.each(prismatic.registeredAction['click'], function (key, val) {
-      prismatic.manageClick(player, data, videoCanva, val, val.timer, e);
+      prismatic.manageClick(data, videoCanva, val, val.timer, e);
     });
   });
 }
@@ -86,7 +87,7 @@ Prismatic.prototype.handleClickAction = function (data, player) {
 /**
  * Handle each "menu" action
  */
-Prismatic.prototype.handleMenuAction = function (data, player) {
+Prismatic.prototype.handleMenuAction = function (data) {
   var prismatic = this;
   $.each(prismatic.registeredAction['menu'], function (key, menu) {
     $.each(menu.items, function (key, val) {
@@ -123,37 +124,33 @@ Prismatic.prototype.ERROR = function (...data) {
  */
 Prismatic.prototype.start = function () {
   var prismatic = this;
-  videojs('#' + this.videoId).ready(function () {
-    var player = this;
-    window._player = player; // Debug purpose
-    $.getJSON(prismatic.jsonFileUrl, function (data) {
+  $.getJSON(prismatic.jsonFileUrl, function (data) {
 
-      $.each(data.events, function (key, val) {
-        if (prismatic.registeredAction[val.type]) {
-          prismatic.registeredAction[val.type].push(val);
-        } else {
-          prismatic.ERROR('Action type [' + val.type + '] doesn\'t exist !');
-        }
-      });
-
-      ///////////////////////////////////
-      // Handle menu action
-      ///////////////////////////////////
-      prismatic.handleMenuAction(data, player);
-      
-      prismatic.LOG('---------------All events have been loaded---------------');
-      prismatic.LOG(prismatic.registeredAction);
-      prismatic.LOG('---------------------------------------------------------');
-
-      ///////////////////////////////////
-      // Handle move action
-      ///////////////////////////////////
-      prismatic.handleMoveAction(player);
-
-      ///////////////////////////////////
-      // Handle click action
-      ///////////////////////////////////
-      prismatic.handleClickAction(data, player);
+    $.each(data.events, function (key, val) {
+      if (prismatic.registeredAction[val.type]) {
+        prismatic.registeredAction[val.type].push(val);
+      } else {
+        prismatic.ERROR('Action type [' + val.type + '] doesn\'t exist !');
+      }
     });
+
+    ///////////////////////////////////
+    // Handle menu action
+    ///////////////////////////////////
+    prismatic.handleMenuAction(data);
+    
+    prismatic.LOG('---------------All events have been loaded---------------');
+    prismatic.LOG(prismatic.registeredAction);
+    prismatic.LOG('---------------------------------------------------------');
+
+    ///////////////////////////////////
+    // Handle move action
+    ///////////////////////////////////
+    prismatic.handleMoveAction();
+
+    ///////////////////////////////////
+    // Handle click action
+    ///////////////////////////////////
+    prismatic.handleClickAction(data);
   });
 }
