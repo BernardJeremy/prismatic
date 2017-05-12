@@ -16,7 +16,7 @@ var Prismatic = function (options) {
     options = {};
   }
   this.videoId = options.videoID || 'my-video';
-  this.jsonFileUrl = options.jsonFileUrl || 'data.json';
+  this.jsonFileUrl = options.jsonFileUrl || 'datas.json';
   this.debug = options.debug || false;
 
   this.player = document.getElementById(this.videoId);
@@ -41,10 +41,10 @@ Prismatic.prototype.isInTiming = function (from, to, current) {
  */
 Prismatic.prototype.manageClick = function (data, videoCanva, val, timer, e) {
   var actualZone = {
-    "leftX": parseFloat(val.coord.leftX) / parseFloat(data.baseData.baseWidth) * parseFloat(videoCanva.width()),
-    "topY": parseFloat(val.coord.topY) / parseFloat(data.baseData.baseHeight) * parseFloat(videoCanva.height()),
-    "rightX": parseFloat(val.coord.rightX) / parseFloat(data.baseData.baseWidth) * parseFloat(videoCanva.width()),
-    "bottomY": parseFloat(val.coord.bottomY) / parseFloat(data.baseData.baseHeight) * parseFloat(videoCanva.height()),
+    "leftX": parseFloat(val.coord.leftX) / parseFloat(data.baseData.baseWidth) * parseFloat(videoCanva.offsetWidth),
+    "topY": parseFloat(val.coord.topY) / parseFloat(data.baseData.baseHeight) * parseFloat(videoCanva.offsetHeight),
+    "rightX": parseFloat(val.coord.rightX) / parseFloat(data.baseData.baseWidth) * parseFloat(videoCanva.offsetWidth),
+    "bottomY": parseFloat(val.coord.bottomY) / parseFloat(data.baseData.baseHeight) * parseFloat(videoCanva.offsetHeight),
   };
 
   if (this.isInZone(e.clientX, e.clientY, actualZone) && this.isInTiming(timer.starting, timer.ending, this.player.currentTime)) {
@@ -62,9 +62,9 @@ Prismatic.prototype.handleMoveAction = function () {
   var prismatic = this;
   setInterval(function () {
     var currentTimeValue = prismatic.player.currentTime;
-    $.each(prismatic.registeredAction['move'], function (key, val) {
+    prismatic.registeredAction['move'].forEach(function (val) {
       if (currentTimeValue >= val.from - MARGIN_S_CHECK_MOVE_ACTION && currentTimeValue <= val.from + MARGIN_S_CHECK_MOVE_ACTION) {
-        prismatic.LOG('[' + val.name + '] Jump to  : ' + val.to + 's');        
+        prismatic.LOG('[' + val.name + '] Jump to  : ' + val.to + 's');
         prismatic.player.currentTime = val.to;
       }
     });
@@ -76,11 +76,14 @@ Prismatic.prototype.handleMoveAction = function () {
  */
 Prismatic.prototype.handleClickAction = function (data) {
   var prismatic = this;
-  var videoCanva = $('#' + prismatic.videoId);
-  videoCanva.click(function (e) {
-    $.each(prismatic.registeredAction['click'], function (key, val) {
-      prismatic.manageClick(data, videoCanva, val, val.timer, e);
-    });
+  var videoCanva = document.getElementById(prismatic.videoId);
+  videoCanva.addEventListener('mousedown', function (e) {
+    if (e.button === 0) {// left click
+      console.log(e);
+      prismatic.registeredAction['click'].forEach(function (val) {
+        prismatic.manageClick(data, videoCanva, val, val.timer, e);
+      });
+    }
   });
 }
 
@@ -89,10 +92,10 @@ Prismatic.prototype.handleClickAction = function (data) {
  */
 Prismatic.prototype.handleMenuAction = function (data) {
   var prismatic = this;
-  $.each(prismatic.registeredAction['menu'], function (key, menu) {
-    $.each(menu.items, function (key, val) {
+  prismatic.registeredAction['menu'].forEach(function (menu) {
+    menu.items.forEach(function (val) {
       if (prismatic.registeredAction[val.type]) {
-        var fullVal = Object.assign({}, val, {timer: menu.timer});
+        var fullVal = Object.assign({}, val, { timer: menu.timer });
         prismatic.registeredAction[val.type].push(fullVal);
       } else {
         prismatic.ERROR('Action type [' + val.type + '] from menu [' + menu.name + '] doesn\'t exist !');
@@ -124,33 +127,47 @@ Prismatic.prototype.ERROR = function (...data) {
  */
 Prismatic.prototype.start = function () {
   var prismatic = this;
-  $.getJSON(prismatic.jsonFileUrl, function (data) {
+  var request = new XMLHttpRequest();
 
-    $.each(data.events, function (key, val) {
-      if (prismatic.registeredAction[val.type]) {
-        prismatic.registeredAction[val.type].push(val);
-      } else {
-        prismatic.ERROR('Action type [' + val.type + '] doesn\'t exist !');
-      }
-    });
+  request.open('GET', prismatic.jsonFileUrl, true);
 
-    ///////////////////////////////////
-    // Handle menu action
-    ///////////////////////////////////
-    prismatic.handleMenuAction(data);
-    
-    prismatic.LOG('---------------All events have been loaded---------------');
-    prismatic.LOG(prismatic.registeredAction);
-    prismatic.LOG('---------------------------------------------------------');
+  request.onload = function () {
+    if (request.status >= 200 && request.status < 400) {
+      var data = JSON.parse(request.responseText);
+      data.events.forEach(function (val) {
+        if (prismatic.registeredAction[val.type]) {
+          prismatic.registeredAction[val.type].push(val);
+        } else {
+          prismatic.ERROR('Action type [' + val.type + '] doesn\'t exist !');
+        }
+      });
 
-    ///////////////////////////////////
-    // Handle move action
-    ///////////////////////////////////
-    prismatic.handleMoveAction();
+      ///////////////////////////////////
+      // Handle menu action
+      ///////////////////////////////////
+      prismatic.handleMenuAction(data);
 
-    ///////////////////////////////////
-    // Handle click action
-    ///////////////////////////////////
-    prismatic.handleClickAction(data);
-  });
+      prismatic.LOG('---------------All events have been loaded---------------');
+      prismatic.LOG(prismatic.registeredAction);
+      prismatic.LOG('---------------------------------------------------------');
+
+      ///////////////////////////////////
+      // Handle move action
+      ///////////////////////////////////
+      prismatic.handleMoveAction();
+
+      ///////////////////////////////////
+      // Handle click action
+      ///////////////////////////////////
+      prismatic.handleClickAction(data);
+    } else {
+      prismatic.ERROR('Status ' + request.status + ' returned while retrieving data at url ' + prismatic.jsonFileUrl  );
+    }
+  };
+
+  request.onerror = function () {
+    prismatic.ERROR('Error retrieving data at url ' + prismatic.jsonFileUrl);
+  };
+
+  request.send();
 }
