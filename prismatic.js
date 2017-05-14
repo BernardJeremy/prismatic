@@ -16,7 +16,7 @@ var Prismatic = function (options) {
     options = {};
   }
   this.videoId = options.videoID || 'my-video';
-  this.jsonFileUrl = options.jsonFileUrl || 'datas.json';
+  this.jsonFileUrl = options.jsonFileUrl || 'data.json';
   this.debug = options.debug || false;
 
   this.player = document.getElementById(this.videoId);
@@ -125,7 +125,7 @@ Prismatic.prototype.ERROR = function (...data) {
 /**
  * Start everything to handle each wanted action
  */
-Prismatic.prototype.start = function () {
+Prismatic.prototype.start = function (callback) {
   var prismatic = this;
   var request = new XMLHttpRequest();
 
@@ -160,13 +160,24 @@ Prismatic.prototype.start = function () {
       // Handle click action
       ///////////////////////////////////
       prismatic.handleClickAction(data);
+      if (callback) {
+        callback(null);
+      }
     } else {
-      prismatic.ERROR('Status ' + request.status + ' returned while retrieving data at url ' + prismatic.jsonFileUrl  );
+      var errMsg = 'Status ' + request.status + ' returned while retrieving data at url ' + prismatic.jsonFileUrl;
+      prismatic.ERROR(errMsg);
+      if (callback) {
+        callback(errMsg);
+      }
     }
   };
 
   request.onerror = function () {
-    prismatic.ERROR('Error retrieving data at url ' + prismatic.jsonFileUrl);
+    var errMsg = 'Error retrieving data at url ' + prismatic.jsonFileUrl;
+    prismatic.ERROR(errMsg);
+    if (callback) {
+      callback(errMsg);
+    }
   };
 
   request.send();
