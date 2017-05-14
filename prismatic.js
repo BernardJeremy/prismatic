@@ -20,6 +20,28 @@ var Prismatic = function (options) {
   this.debug = options.debug || false;
 
   this.player = document.getElementById(this.videoId);
+  var prismatic = this;
+  setInterval(function (t) {
+    if (prismatic.player.readyState > 0) {
+      prismatic.duration = prismatic.player.duration;
+      clearInterval(t);
+    }
+  }, 500);
+
+  if (options.debug) {
+    window.prismatic = this;
+  }
+}
+
+/**
+ * Set video currentTime
+ */
+Prismatic.prototype.setCurrentTime = function (to) {
+  if (to === -1) {
+    to = this.duration;
+  }
+
+  this.player.currentTime = to;
 }
 
 /**
@@ -33,6 +55,10 @@ Prismatic.prototype.isInZone = function (X, Y, zone) {
  * Check if a time is inside a specific a time, given an error margin
  */
 Prismatic.prototype.isInTiming = function (from, to, current) {
+  if (to === -1) {
+    to = this.duration;
+  }
+
   return (current >= from - MARGIN_S_CHECK_MOVE_ACTION && current <= to + MARGIN_S_CHECK_MOVE_ACTION);
 }
 
@@ -50,7 +76,7 @@ Prismatic.prototype.manageClick = function (data, videoCanva, val, timer, e) {
   if (this.isInZone(e.clientX, e.clientY, actualZone) && this.isInTiming(timer.starting, timer.ending, this.player.currentTime)) {
     if (val.action.jumpTo) {
       this.LOG('[' + val.name + '] Jump to  : ' + val.action.jumpTo + 's');
-      this.player.currentTime = val.action.jumpTo;
+      this.player.setCurrentTime(val.action.jumpTo);
     }
   }
 }
@@ -65,7 +91,7 @@ Prismatic.prototype.handleMoveAction = function () {
     prismatic.registeredAction['move'].forEach(function (val) {
       if (currentTimeValue >= val.from - MARGIN_S_CHECK_MOVE_ACTION && currentTimeValue <= val.from + MARGIN_S_CHECK_MOVE_ACTION) {
         prismatic.LOG('[' + val.name + '] Jump to  : ' + val.to + 's');
-        prismatic.player.currentTime = val.to;
+        prismatic.player.setCurrentTime(val.to);
       }
     });
   }, INTERVAL_MS_CHECK_CURRRENT_TIME);
