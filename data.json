@@ -5,6 +5,23 @@
     },
     "events": [
         {
+            "name": "pauseButton",
+            "type": "click",
+            "action": {
+                "function": "makePause"
+            },
+            "coord": {
+                "leftX": 96,
+                "topY": 11,
+                "rightX": 153,
+                "bottomY": 53
+            },
+            "timer": {
+                "starting": 0,
+                "ending": -1
+            }
+        },
+        {
             "name": "jumpToMenu",
             "type": "move",
             "from": 5,

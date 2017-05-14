@@ -76,7 +76,14 @@ Prismatic.prototype.manageClick = function (data, videoCanva, val, timer, e) {
   if (this.isInZone(e.clientX, e.clientY, actualZone) && this.isInTiming(timer.starting, timer.ending, this.player.currentTime)) {
     if (val.action.jumpTo) {
       this.LOG('[' + val.name + '] Jump to  : ' + val.action.jumpTo + 's');
-      this.player.setCurrentTime(val.action.jumpTo);
+      this.setCurrentTime(val.action.jumpTo);
+    } else if (val.action.function) {
+      if (!window[val.action.function]) {
+        this.ERROR('window.' + val.action.function + ' function does not exist in window scope');
+      } else {
+        this.LOG('[' + val.name + '] exec function  : window.' + val.action.function);
+        window[val.action.function](this.player);
+      }
     }
   }
 }
@@ -91,7 +98,7 @@ Prismatic.prototype.handleMoveAction = function () {
     prismatic.registeredAction['move'].forEach(function (val) {
       if (currentTimeValue >= val.from - MARGIN_S_CHECK_MOVE_ACTION && currentTimeValue <= val.from + MARGIN_S_CHECK_MOVE_ACTION) {
         prismatic.LOG('[' + val.name + '] Jump to  : ' + val.to + 's');
-        prismatic.player.setCurrentTime(val.to);
+        prismatic.setCurrentTime(val.to);
       }
     });
   }, INTERVAL_MS_CHECK_CURRRENT_TIME);
@@ -105,7 +112,6 @@ Prismatic.prototype.handleClickAction = function (data) {
   var videoCanva = document.getElementById(prismatic.videoId);
   videoCanva.addEventListener('mousedown', function (e) {
     if (e.button === 0) {// left click
-      console.log(e);
       prismatic.registeredAction['click'].forEach(function (val) {
         prismatic.manageClick(data, videoCanva, val, val.timer, e);
       });

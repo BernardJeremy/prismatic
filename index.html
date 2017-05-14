@@ -12,6 +12,10 @@
 
   <script src="prismatic.js"></script>
   <script>
+    function makePause (player) {
+      player.paused ? player.play() : player.pause();
+    }
+
     document.addEventListener("DOMContentLoaded", function () {
       var prismatic = new Prismatic({debug: true});
       prismatic.start(function(err) {
